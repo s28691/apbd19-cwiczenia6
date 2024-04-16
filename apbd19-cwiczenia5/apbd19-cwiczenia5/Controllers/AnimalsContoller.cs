@@ -1,4 +1,5 @@
 ﻿using apbd19_cwiczenia5.Models;
+using apbd19_cwiczenia5.Models.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 
@@ -15,7 +16,7 @@ public class AnimalsContoller : ControllerBase
     [HttpGet]
     public IActionResult GetAnimals()
     {
-        SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("Default"));
+        using SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("Default"));
         connection.Open();
         SqlCommand command = new SqlCommand();
         command.Connection = connection;
@@ -32,12 +33,21 @@ public class AnimalsContoller : ControllerBase
                Name = reader.GetString(nameOrdinal)
            }); 
         }
+        
         return Ok(animals);
     }
 
     [HttpPost]
-    public IActionResult AddAnimal()
+    public IActionResult AddAnimal(AddAnimal addAnimal)
     {
+        using SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("Default"));
+        connection.Open();
+        SqlCommand command = new SqlCommand();
+        command.Connection = connection;
+        command.CommandText = $"INSERT INTO Animal VALUES(@animalName,'','','')";
+        command.Parameters.AddWithValue("@animalName", addAnimal.Name);
+        command.ExecuteNonQuery();
+        
         return Created("", null);
     }
 }
