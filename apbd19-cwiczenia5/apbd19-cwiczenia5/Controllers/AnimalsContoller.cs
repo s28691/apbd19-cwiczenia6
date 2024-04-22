@@ -14,9 +14,25 @@ public class AnimalsContoller : ControllerBase
         _configuration = configuration;
     }
     [HttpGet]
-    public IActionResult GetAnimals()
+    public IActionResult GetAnimals(string orderBy = "name")
     {
         using SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("Default"));
+        string orderByColumn = "name";
+        if (!string.IsNullOrEmpty(orderBy))
+        {
+            switch (orderBy.ToLower())
+            {
+                case "name":
+                case "description":
+                case "category":
+                case "area":
+                    orderByColumn = orderBy.ToLower();
+                    break;
+                default:
+                    orderByColumn = "name";
+                    break;
+            }
+        }
         connection.Open();
         SqlCommand command = new SqlCommand();
         command.Connection = connection;
