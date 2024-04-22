@@ -36,7 +36,7 @@ public class AnimalsContoller : ControllerBase
         connection.Open();
         SqlCommand command = new SqlCommand();
         command.Connection = connection;
-        command.CommandText = "SELECT * FROM Animal";
+        command.CommandText = "SELECT * FROM Animal ORDER BY {orderByColumn}";
         var reader = command.ExecuteReader();
         List<Animal> animals = new List<Animal>();
         int AnimalOrdinal = reader.GetOrdinal("IdAnimal");
@@ -65,5 +65,51 @@ public class AnimalsContoller : ControllerBase
         command.ExecuteNonQuery();
         
         return Created("", null);
+    }
+    
+    [HttpPut("{idAnimal}")]
+    public IActionResult UpdateAnimal(int idAnimal, [FromBody] Animal updatedAnimal)
+    {
+        using (SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("Default")))
+        {
+            connection.Open();
+            
+            SqlCommand checkCommand = new SqlCommand("SELECT COUNT(*) FROM Animal WHERE IdAnimal = @IdAnimal", connection);
+            checkCommand.Parameters.AddWithValue("@IdAnimal", idAnimal);
+            int animalCount = (int)checkCommand.ExecuteScalar();
+
+            if (animalCount == 0)
+            {
+                return NotFound(); 
+            }
+            
+            SqlCommand updateCommand = new SqlCommand("UPDATE Animal SET Name = @Name WHERE IdAnimal = @IdAnimal", connection);
+            updateCommand.Parameters.AddWithValue("@Name", updatedAnimal.Name);
+            updateCommand.Parameters.AddWithValue("@IdAnimal", idAnimal);
+            updateCommand.ExecuteNonQuery();
+
+            return NoContent(); 
+        }
+    }
+    
+    [HttpDelete("{idAnimal}")]
+    public IActionResult DeleteAnimal(int idAnimal)
+    {
+        using (SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("Default")))
+        {
+            connection.Open();
+            SqlCommand checkCommand = new SqlCommand("SELECT COUNT(*) FROM Animal WHERE IdAnimal = @IdAnimal", connection);
+            checkCommand.Parameters.AddWithValue("@IdAnimal", idAnimal);
+            int animalCount = (int)checkCommand.ExecuteScalar();
+            if (animalCount == 0)
+            {
+                return NotFound(); 
+            }
+            SqlCommand deleteCommand = new SqlCommand("DELETE FROM Animal WHERE IdAnimal = @IdAnimal", connection);
+            deleteCommand.Parameters.AddWithValue("@IdAnimal", idAnimal);
+            deleteCommand.ExecuteNonQuery();
+
+            return NoContent(); 
+        }
     }
 }
